@@ -1,0 +1,8 @@
+{{define "new"}}
+  <h2>Start a new thread</h2>
+  <form method="POST" action="/thread/new">
+    <input name="title" placeholder="Title" required />
+    <textarea name="content" rows="8" placeholder="Write your thread content..." required></textarea>
+    <button type="submit">Publish Thread</button>
+  </form>
+{{end}}

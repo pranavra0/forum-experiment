@@ -1,0 +1,28 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>{{block "title" .}}Go Forum{{end}}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    header { display:flex; justify-content:space-between; align-items:center; }
+    .thread { border-bottom:1px solid #ddd; padding:1rem 0; }
+    form input, form textarea { width:100%; padding:8px; margin-bottom:8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><a href="/">Go Forum</a></h1>
+    <a href="/thread/new">New Thread</a>
+  </header>
+  <main>
+    {{if eq .Name "home"}}
+      {{template "home" .}}
+    {{else if eq .Name "new"}}
+      {{template "new" .}}
+    {{end}}
+  </main>
+</body>
+</html>
+{{end}}

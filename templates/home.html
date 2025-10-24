@@ -1,0 +1,13 @@
+{{define "home"}}
+  {{if .Threads}}
+    {{range .Threads}}
+      <article class="thread">
+        <h2>{{.Title}}</h2>
+        <small>{{.CreatedAt}}</small>
+        <p>{{.Content}}</p>
+      </article>
+    {{end}}
+  {{else}}
+    <p>No threads yet — start one!</p>
+  {{end}}
+{{end}}
