@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"time"
@@ -51,3 +51,14 @@ func CreateThread(title, content string) (int64, error) {
 	}
 	return res.LastInsertId()
 }
+
+func GetThreadByID(id int) (Thread, error) {
+	var t Thread
+	err := db.Conn.QueryRow(
+		"SELECT id, title, content, created_at FROM threads WHERE id = ?",
+		id,
+	).Scan(&t.ID, &t.Title, &t.Content, &t.CreatedAt)
+	return t, err
+}
+
+

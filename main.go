@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"forum-experiment/controller"
+	"forum-experiment/controllers"
 	"forum-experiment/db"
 )
 
@@ -22,7 +22,8 @@ func main() {
 	r.Get("/", controllers.Home)
 	r.Get("/thread/new", controllers.NewThreadForm)
 	r.Post("/thread/new", controllers.CreateThread)
-
+	r.Get("/thread/{id}", controllers.ShowThread)
+	
 	log.Println("Server running at http://localhost:8080")
 	http.ListenAndServe(":8080", r)
 }

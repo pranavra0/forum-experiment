@@ -2,7 +2,7 @@
   {{if .Threads}}
     {{range .Threads}}
       <article class="thread">
-        <h2>{{.Title}}</h2>
+        <h2><a href="/thread/{{.ID}}">{{.Title}}</a></h2>
         <small>{{.CreatedAt}}</small>
         <p>{{.Content}}</p>
       </article>

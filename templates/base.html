@@ -21,6 +21,8 @@
       {{template "home" .}}
     {{else if eq .Name "new"}}
       {{template "new" .}}
+    {{else if eq .Name "view_thread"}}
+      {{template "view_thread" .}}
     {{end}}
   </main>
 </body>
