@@ -1,0 +1,3 @@
+This will be my go learning repo. I have already tried making a simple Go program in the past and would like to go a bit deeper this time around.
+
+ I am inspired by the forums in the past and the relatively little to no JavaScript used. I often find myself asking "why even use JavaScript?" for most applications. A big benesit of forgoing JS is the potential performance gains. With that in mind, I thought it would be a good idea to use Go as build this project. 
