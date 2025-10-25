@@ -32,6 +32,7 @@ func main() {
 	r.Get("/login", controllers.ShowLogin)
 	r.Post("/login", controllers.Login)
 	r.Get("/logout", controllers.Logout)
+	r.Post("/logout", controllers.Logout)
 
 
 	
