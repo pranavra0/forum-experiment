@@ -71,3 +71,7 @@ func GetThreadByID(id int) (Thread, error) {
 	}
 	return t, err
 }
+
+func (t Thread) FormattedTime() string {
+    return t.CreatedAt.Format("2006-01-02 15:04")
+}

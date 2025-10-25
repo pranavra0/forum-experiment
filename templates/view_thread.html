@@ -3,7 +3,7 @@
     <article class="thread">
       <h2>{{.Title}}</h2>
       <small>
-        Posted by <strong>{{.Username}}</strong> — {{.CreatedAt}}
+        Posted by <strong>{{.Username}}</strong> — {{.FormattedTime}}
       </small>
       <p>{{.Content}}</p>
     </article>
@@ -15,7 +15,7 @@
       <article class="reply">
         <p>{{.Content}}</p>
         <small>
-          By <strong>{{.Username}}</strong> — {{.CreatedAt}}
+          By <strong>{{.Username}}</strong> — {{.FormattedTime}}
         </small>
       </article>
     {{else}}

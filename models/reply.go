@@ -48,3 +48,7 @@ func GetRepliesByThreadID(threadID int) ([]Reply, error) {
 	}
 	return replies, rows.Err()
 }
+
+func (r Reply) FormattedTime() string {
+    return r.CreatedAt.Format("2006-01-02 15:04")
+}
