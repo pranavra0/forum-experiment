@@ -3,11 +3,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>{{block "title" .}}Go Forum{{end}}</title>
+  <title>{{block "title" .}}The Forum{{end}}</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
     header { display:flex; justify-content:space-between; align-items:center; }
     
+    /*TODO: redo thread and reply styling*/
     .thread {
       border-bottom: 2px solid #ccc;
       padding: 1rem 0;
@@ -21,12 +22,42 @@
     }
 
     form input, form textarea { width:100%; padding:8px; margin-bottom:8px; }
+    
+    /* auth styles */
+    .auth-form {
+      max-width: 400px;
+      margin: 2rem auto;
+    }
+    .error-message {
+      color: #dc2626;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      background: #fef2f2;
+      border-radius: 4px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1><a href="/">Go Forum</a></h1>
-    <a href="/thread/new">New Thread</a>
+    <nav class="nav-links">
+      {{if .User}}
+        <span>Welcome, {{.User.Username}}</span>
+        <a href="/thread/new">New Thread</a>
+        <form method="POST" action="/logout" style="display:inline">
+          <button type="submit">Logout</button>
+        </form>
+      {{else}}
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+        <a href="/thread/new">New Thread</a>
+      {{end}}
+    </nav>
   </header>
   <main>
     {{if eq .Name "home"}}
@@ -35,6 +66,10 @@
       {{template "new" .}}
     {{else if eq .Name "view_thread"}}
       {{template "view_thread" .}}
+    {{else if eq .Name "register"}}
+      {{template "register" .}}
+    {{else if eq .Name "login"}}
+      {{template "login" .}}
     {{end}}
   </main>
 </body>

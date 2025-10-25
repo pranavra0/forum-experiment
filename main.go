@@ -18,12 +18,22 @@ func main() {
 
 	r := chi.NewRouter()
 
+	// middleware 
+	r.Use(controllers.WithUser)
+
 	// Routes
 	r.Get("/", controllers.Home)
 	r.Get("/thread/new", controllers.NewThreadForm)
 	r.Post("/thread/new", controllers.CreateThread)
 	r.Get("/thread/{id}", controllers.ShowThread)
 	r.Post("/thread/{id}/reply", controllers.CreateReply)
+	r.Get("/register", controllers.ShowRegister)
+	r.Post("/register", controllers.Register)
+	r.Get("/login", controllers.ShowLogin)
+	r.Post("/login", controllers.Login)
+	r.Get("/logout", controllers.Logout)
+
+
 	
 	log.Println("Server running at http://localhost:8080")
 	http.ListenAndServe(":8080", r)

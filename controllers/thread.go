@@ -15,9 +15,15 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var user *models.User
+    if u := r.Context().Value("user"); u != nil {
+        user = u.(*models.User)
+    }
+
 	Render(w, "home", PageData{
 		Name:    "home",
 		Threads: threads,
+		User: user,
 	})
 }
 

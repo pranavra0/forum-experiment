@@ -33,6 +33,22 @@ func Init(path string) error {
 		created_at DATETIME NOT NULL,
 		FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE
 	);
+
+	CREATE TABLE IF NOT EXISTS users (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		username TEXT UNIQUE NOT NULL,
+		email TEXT NOT NULL UNIQUE,
+		password_hash TEXT NOT NULL,
+		created_at TEXT NOT NULL
+	);
+
+	CREATE TABLE IF NOT EXISTS sessions (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user_id INTEGER NOT NULL,
+		token TEXT NOT NULL UNIQUE,
+		created_at TEXT NOT NULL,
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	);
 	`
 	if _, err := Conn.Exec(schema); err != nil {
 		return fmt.Errorf("create schema: %w", err)
