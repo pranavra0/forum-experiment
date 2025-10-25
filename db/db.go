@@ -25,6 +25,14 @@ func Init(path string) error {
 		content TEXT NOT NULL,
 		created_at DATETIME NOT NULL
 	);
+
+	CREATE TABLE IF NOT EXISTS replies (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		thread_id INTEGER NOT NULL,
+		content TEXT NOT NULL,
+		created_at DATETIME NOT NULL,
+		FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE
+	);
 	`
 	if _, err := Conn.Exec(schema); err != nil {
 		return fmt.Errorf("create schema: %w", err)

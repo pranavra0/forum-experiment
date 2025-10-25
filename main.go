@@ -23,6 +23,7 @@ func main() {
 	r.Get("/thread/new", controllers.NewThreadForm)
 	r.Post("/thread/new", controllers.CreateThread)
 	r.Get("/thread/{id}", controllers.ShowThread)
+	r.Post("/thread/{id}/reply", controllers.CreateReply)
 	
 	log.Println("Server running at http://localhost:8080")
 	http.ListenAndServe(":8080", r)

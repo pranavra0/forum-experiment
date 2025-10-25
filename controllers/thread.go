@@ -49,7 +49,7 @@ func CreateThread(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowThread(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id") 
+	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.NotFound(w, r)
@@ -62,9 +62,16 @@ func ShowThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	replies, err := models.GetRepliesByThreadID(id)
+	if err != nil {
+		http.Error(w, "could not load replies", http.StatusInternalServerError)
+		return
+	}
+
 	Render(w, "view_thread", PageData{
 		Name:    "view_thread",
 		Threads: []models.Thread{thread},
+		Replies: replies,
 	})
 }
 
