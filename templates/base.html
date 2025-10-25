@@ -48,8 +48,8 @@
   <header>
     <h1><a href="/">Go Forum</a></h1>
     <nav class="nav-links">
-      {{if .User}}
-        <span>Welcome, {{.User.Username}}</span>
+      {{with .User}}
+        <span>Welcome, {{.Username}}</span>
         <a href="/thread/new">New Thread</a>
         <form method="POST" action="/logout" style="display:inline">
           <button type="submit">Logout</button>
@@ -62,17 +62,7 @@
     </nav>
   </header>
   <main>
-    {{if eq .Name "home"}}
-      {{template "home" .}}
-    {{else if eq .Name "new"}}
-      {{template "new" .}}
-    {{else if eq .Name "view_thread"}}
-      {{template "view_thread" .}}
-    {{else if eq .Name "register"}}
-      {{template "register" .}}
-    {{else if eq .Name "login"}}
-      {{template "login" .}}
-    {{end}}
+    {{block "content" .}}{{end}}
   </main>
 </body>
 </html>

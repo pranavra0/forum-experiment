@@ -1,15 +1,14 @@
-{{define "home"}}
-  {{if .Threads}}
-    {{range .Threads}}
-      <article class="thread">
-        <h2><a href="/thread/{{.ID}}">{{.Title}}</a></h2>
-        <small>
-          Posted by <strong>{{.Username}}</strong> — {{.FormattedTime}}
-        </small>
-        <p>{{.Content}}</p>
-      </article>
-    {{end}}
-  {{else}}
-    <p>No threads yet — start one!</p>
+{{define "content"}}
+<h2>Threads</h2>
+{{if .Threads}}
+  {{range .Threads}}
+    <article class="thread">
+      <h3><a href="/thread/{{.ID}}">{{.Title}}</a></h3>
+      <small>Posted by <strong>{{.Username}}</strong> — {{.FormattedTime}}</small>
+      <p>{{.Content}}</p>
+    </article>
   {{end}}
+{{else}}
+  <p>No threads yet — start one!</p>
+{{end}}
 {{end}}

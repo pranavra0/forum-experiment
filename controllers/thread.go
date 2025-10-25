@@ -19,10 +19,9 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		user = u.(*models.User)
 	}
 
-	Render(w, "home", PageData{
-		Name:    "home",
-		Threads: threads,
-		User:    user,
+	Render(w, "home", map[string]any{
+		"Threads": threads,
+		"User":    user,
 	})
 }
 
@@ -33,9 +32,9 @@ func NewThreadForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	Render(w, "new", PageData{
-		Name: "new",
-		User: user,
+
+	Render(w, "new", map[string]any{
+		"User": user,
 	})
 }
 
@@ -93,10 +92,9 @@ func ShowThread(w http.ResponseWriter, r *http.Request) {
 		user = u.(*models.User)
 	}
 
-	Render(w, "view_thread", PageData{
-		Name:    "view_thread",
-		Threads: []models.Thread{thread},
-		Replies: replies,
-		User:    user,
+	Render(w, "view_thread", map[string]any{
+		"Thread":  thread,
+		"Replies": replies,
+		"User":    user,
 	})
 }

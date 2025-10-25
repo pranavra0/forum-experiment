@@ -15,7 +15,7 @@ func main() {
 		log.Fatalf("db init error: %v", err)
 	}
 	defer db.Close()
-
+	controllers.InitTemplates()
 	r := chi.NewRouter()
 
 	// middleware 
