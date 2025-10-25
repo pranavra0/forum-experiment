@@ -3,7 +3,6 @@ package models
 import (
 	"time"
 	"log"
-
 	"forum-experiment/db"
 )
 
@@ -11,11 +10,18 @@ type Thread struct {
 	ID        int
 	Title     string
 	Content   string
+	UserID    int
+	Username  string 
 	CreatedAt time.Time
 }
 
 func GetAllThreads() ([]Thread, error) {
-	rows, err := db.Conn.Query("SELECT id, title, content, created_at FROM threads ORDER BY created_at DESC")
+	rows, err := db.Conn.Query(`
+		SELECT t.id, t.title, t.content, t.created_at, t.user_id, u.username
+		FROM threads t
+		JOIN users u ON t.user_id = u.id
+		ORDER BY t.created_at DESC
+	`)
 	if err != nil {
 		return nil, err
 	}
@@ -25,40 +31,43 @@ func GetAllThreads() ([]Thread, error) {
 	for rows.Next() {
 		var t Thread
 		var created string
-		if err := rows.Scan(&t.ID, &t.Title, &t.Content, &created); err != nil {
+		if err := rows.Scan(&t.ID, &t.Title, &t.Content, &created, &t.UserID, &t.Username); err != nil {
 			return nil, err
 		}
 		t.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
 		threads = append(threads, t)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return threads, nil
+	return threads, rows.Err()
 }
 
-func CreateThread(title, content string) (int64, error) {
-	stmt, err := db.Conn.Prepare("INSERT INTO threads (title, content, created_at) VALUES (?, ?, ?)")
-	log.Printf("✅ New thread created: %s — %s\n", title, content)
+func CreateThread(title, content string, userID int64) (int64, error) {
+	stmt, err := db.Conn.Prepare("INSERT INTO threads (title, content, user_id, created_at) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return 0, err
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(title, content, time.Now().Format(time.RFC3339Nano))
+	res, err := stmt.Exec(title, content, userID, time.Now().Format(time.RFC3339Nano))
 	if err != nil {
 		return 0, err
 	}
+
+	log.Printf("✅ User %d created thread: %s", userID, title)
 	return res.LastInsertId()
 }
 
+
 func GetThreadByID(id int) (Thread, error) {
 	var t Thread
-	err := db.Conn.QueryRow(
-		"SELECT id, title, content, created_at FROM threads WHERE id = ?",
-		id,
-	).Scan(&t.ID, &t.Title, &t.Content, &t.CreatedAt)
+	var created string
+	err := db.Conn.QueryRow(`
+		SELECT t.id, t.title, t.content, t.created_at, t.user_id, u.username
+		FROM threads t
+		JOIN users u ON t.user_id = u.id
+		WHERE t.id = ?
+	`, id).Scan(&t.ID, &t.Title, &t.Content, &created, &t.UserID, &t.Username)
+	if err == nil {
+		t.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
+	}
 	return t, err
 }
-
-

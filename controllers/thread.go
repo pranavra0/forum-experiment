@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"forum-experiment/models"
 	"github.com/go-chi/chi/v5"
-
 )
 
 func Home(w http.ResponseWriter, r *http.Request) {
@@ -16,22 +15,37 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *models.User
-    if u := r.Context().Value("user"); u != nil {
-        user = u.(*models.User)
-    }
+	if u := r.Context().Value("user"); u != nil {
+		user = u.(*models.User)
+	}
 
 	Render(w, "home", PageData{
 		Name:    "home",
 		Threads: threads,
-		User: user,
+		User:    user,
 	})
 }
 
 func NewThreadForm(w http.ResponseWriter, r *http.Request) {
-	Render(w, "new", PageData{Name: "new"})
+	user, ok := r.Context().Value("user").(*models.User)
+	if !ok || user == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	Render(w, "new", PageData{
+		Name: "new",
+		User: user,
+	})
 }
 
 func CreateThread(w http.ResponseWriter, r *http.Request) {
+	user, ok := r.Context().Value("user").(*models.User)
+	if !ok || user == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
@@ -45,7 +59,7 @@ func CreateThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := models.CreateThread(title, content)
+	_, err := models.CreateThread(title, content, user.ID)
 	if err != nil {
 		http.Error(w, "could not create thread", http.StatusInternalServerError)
 		return
@@ -74,10 +88,15 @@ func ShowThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var user *models.User
+	if u := r.Context().Value("user"); u != nil {
+		user = u.(*models.User)
+	}
+
 	Render(w, "view_thread", PageData{
 		Name:    "view_thread",
 		Threads: []models.Thread{thread},
 		Replies: replies,
+		User:    user,
 	})
 }
-

@@ -1,9 +1,10 @@
 {{define "view_thread"}}
   {{with index .Threads 0}}
-
     <article class="thread">
       <h2>{{.Title}}</h2>
-      <small>{{.CreatedAt}}</small>
+      <small>
+        Posted by <strong>{{.Username}}</strong> — {{.CreatedAt}}
+      </small>
       <p>{{.Content}}</p>
     </article>
   {{end}}
@@ -12,18 +13,22 @@
     <h3>Replies</h3>
     {{range .Replies}}
       <article class="reply">
-        <small style="float: right; color: #666;">{{.CreatedAt}}</small>
         <p>{{.Content}}</p>
-        <div style="clear: both;"></div>
+        <small>
+          By <strong>{{.Username}}</strong> — {{.CreatedAt}}
+        </small>
       </article>
     {{else}}
       <p>No replies yet.</p>
     {{end}}
   </section>
 
-  <form method="POST" action="/thread/{{(index .Threads 0).ID}}/reply">
-    <textarea name="content" rows="4" placeholder="Write your reply..." required></textarea>
-    <button type="submit">Post Reply</button>
-  </form>
-
+  {{if .User}}
+    <form method="POST" action="/thread/{{(index .Threads 0).ID}}/reply">
+      <textarea name="content" rows="4" placeholder="Write your reply..." required></textarea>
+      <button type="submit">Post Reply</button>
+    </form>
+  {{else}}
+    <p><a href="/login">Log in to reply</a></p>
+  {{end}}
 {{end}}

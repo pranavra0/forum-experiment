@@ -3,7 +3,9 @@
     {{range .Threads}}
       <article class="thread">
         <h2><a href="/thread/{{.ID}}">{{.Title}}</a></h2>
-        <small>{{.CreatedAt}}</small>
+        <small>
+          Posted by <strong>{{.Username}}</strong> — {{.CreatedAt}}
+        </small>
         <p>{{.Content}}</p>
       </article>
     {{end}}

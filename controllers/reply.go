@@ -9,6 +9,12 @@ import (
 )
 
 func CreateReply(w http.ResponseWriter, r *http.Request) {
+	user, ok := r.Context().Value("user").(*models.User)
+	if !ok || user == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
@@ -28,7 +34,7 @@ func CreateReply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.CreateReply(threadID, content); err != nil {
+	if err := models.CreateReply(threadID, user.ID, content); err != nil {
 		http.Error(w, "could not save reply", http.StatusInternalServerError)
 		return
 	}
