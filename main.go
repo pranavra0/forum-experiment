@@ -22,7 +22,7 @@ func main() {
 	r.Use(controllers.WithUser)
 
 	// Routes
-	r.Get("/", controllers.Home)
+r.Get("/", controllers.HomeHandler)
 	r.Get("/thread/new", controllers.NewThreadForm)
 	r.Post("/thread/new", controllers.CreateThread)
 	r.Get("/thread/{id}", controllers.ShowThread)

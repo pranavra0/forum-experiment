@@ -7,31 +7,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func Home(w http.ResponseWriter, r *http.Request) {
-	threads, err := models.GetAllThreads()
-	if err != nil {
-		http.Error(w, "unable to load threads", http.StatusInternalServerError)
-		return
-	}
-
-	var user *models.User
-	if u := r.Context().Value("user"); u != nil {
-		user = u.(*models.User)
-	}
-
-	Render(w, "home", map[string]any{
-		"Threads": threads,
-		"User":    user,
-	})
-}
-
 func NewThreadForm(w http.ResponseWriter, r *http.Request) {
 	user, ok := r.Context().Value("user").(*models.User)
 	if !ok || user == nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-
 
 	Render(w, "new", map[string]any{
 		"User": user,

@@ -8,6 +8,59 @@
       <p>{{.Content}}</p>
     </article>
   {{end}}
+
+  <nav style="margin-top:1.5rem; display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
+
+    <!-- numbered pagination -->
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; align-items:center;">
+
+      <!-- Show first page always -->
+      <a href="/?page=1">1</a>
+
+      {{if .ShowStartEllipsis}}
+        <span>…</span>
+      {{end}}
+
+      <!-- Middle pages -->
+      {{range .Pages}}
+        {{if eq . $.Page}}
+          <strong>[{{.}}]</strong>
+        {{else}}
+          <a href="/?page={{.}}">{{.}}</a>
+        {{end}}
+      {{end}}
+
+      {{if .ShowEndEllipsis}}
+        <span>…</span>
+      {{end}}
+
+      <!-- Last page, only if > 1 -->
+      {{if gt .TotalPages 1}}
+        <a href="/?page={{.TotalPages}}">{{.TotalPages}}</a>
+      {{end}}
+
+    </div>
+
+    <!-- jump to page form -->
+    <button id="show-jump" type="button" style="margin-top:0.5rem;">Jump to page</button>
+
+    <form id="jump-form" action="/" method="get" style="display:none; margin-top:0.5rem;">
+      <input type="number" name="page" min="1" max="{{.TotalPages}}" style="width:4rem;" placeholder="#">
+      <button type="submit">Go</button>
+    </form>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const btn = document.getElementById("show-jump");
+        const form = document.getElementById("jump-form");
+        btn.addEventListener("click", () => {
+          form.style.display = form.style.display === "none" ? "inline-block" : "none";
+        });
+      });
+    </script>
+
+  </nav>
+
 {{else}}
   <p>No threads yet — start one!</p>
 {{end}}

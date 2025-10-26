@@ -4,6 +4,7 @@ import (
 	"time"
 	"log"
 	"forum-experiment/db"
+	"math"
 )
 
 type Thread struct {
@@ -75,3 +76,75 @@ func GetThreadByID(id int) (Thread, error) {
 func (t Thread) FormattedTime() string {
     return t.CreatedAt.Format("2006-01-02 15:04")
 }
+
+// pagination logic
+
+func GetThreadsPage(limit, offset int) ([]Thread, error) {
+	rows, err := db.Conn.Query(`
+		SELECT t.id, t.title, t.content, t.created_at, t.user_id, u.username
+		FROM threads t
+		JOIN users u ON t.user_id = u.id
+		ORDER BY t.created_at DESC
+		LIMIT ? OFFSET ?
+	`, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var threads []Thread
+	for rows.Next() {
+		var t Thread
+		var created string
+		if err := rows.Scan(&t.ID, &t.Title, &t.Content, &created, &t.UserID, &t.Username); err != nil {
+			return nil, err
+		}
+		t.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
+		threads = append(threads, t)
+	}
+	return threads, rows.Err()
+}
+
+func CountThreads() (int, error) {
+	var count int
+	err := db.Conn.QueryRow("SELECT COUNT(*) FROM threads").Scan(&count)
+	return count, err
+}
+
+func GetPaginatedThreads(page, pageSize int) ([]Thread, int, error) {
+	offset := (page - 1) * pageSize
+
+	// Get total count
+	total, err := CountThreads()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Fetch threads for this page
+	rows, err := db.Conn.Query(`
+		SELECT t.id, t.title, t.content, t.created_at, t.user_id, u.username
+		FROM threads t
+		JOIN users u ON t.user_id = u.id
+		ORDER BY t.created_at DESC
+		LIMIT ? OFFSET ?
+	`, pageSize, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var threads []Thread
+	for rows.Next() {
+		var t Thread
+		var created string
+		if err := rows.Scan(&t.ID, &t.Title, &t.Content, &created, &t.UserID, &t.Username); err != nil {
+			return nil, 0, err
+		}
+		t.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
+		threads = append(threads, t)
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+	return threads, totalPages, nil
+}
+

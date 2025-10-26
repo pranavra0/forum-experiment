@@ -10,3 +10,12 @@ type PageData struct {
 	Error    string
 }
 
+type Pagination struct {
+	Page              int
+	TotalPages        int
+	Pages             []int
+	ShowStartEllipsis bool
+	ShowEndEllipsis   bool
+	HasPrev           bool
+	HasNext           bool
+}
