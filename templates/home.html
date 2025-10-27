@@ -4,7 +4,10 @@
   {{range .Threads}}
     <article class="thread">
       <h3><a href="/thread/{{.ID}}">{{.Title}}</a></h3>
-      <small>Posted by <strong>{{.Username}}</strong> — {{.FormattedTime}}</small>
+      <small>
+      Posted by <strong>{{.Username}}</strong> - {{.FormattedTime}} -
+      {{.ReplyCount}} {{if eq .ReplyCount 1}}reply{{else}}replies{{end}}
+      </small>
       <p>{{.Content}}</p>
     </article>
   {{end}}

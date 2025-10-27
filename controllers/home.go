@@ -4,9 +4,11 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
 	"forum-experiment/models"
 )
 
+// --- Pagination logic ---
 func BuildPagination(page, totalPages int) Pagination {
 	if totalPages <= 0 {
 		return Pagination{}
@@ -15,7 +17,6 @@ func BuildPagination(page, totalPages int) Pagination {
 	var pages []int
 	const window = 1
 
-	// Middle pages only (exclude 1 and totalPages)
 	start := page - window
 	end := page + window
 
@@ -52,12 +53,28 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, _ := r.Context().Value("user").(*models.User)
-
 	const pageSize = 10
+
 	threads, totalPages, err := models.GetPaginatedThreads(page, pageSize)
 	if err != nil {
 		http.Error(w, "Error loading threads", http.StatusInternalServerError)
 		return
+	}
+
+	var ids []int
+	for _, t := range threads {
+		ids = append(ids, t.ID)
+	}
+
+	replyCounts, err := models.GetReplyCountForThreads(ids)
+	if err != nil {
+		log.Printf("⚠️ Error fetching reply counts: %v", err)
+	} else {
+		for i := range threads {
+			if count, ok := replyCounts[threads[i].ID]; ok {
+				threads[i].ReplyCount = count
+			}
+		}
 	}
 
 	pagination := BuildPagination(page, totalPages)
