@@ -28,6 +28,33 @@
   {{end}}
 </section>
 
+{{if gt .Pagination.TotalPages 1}}
+<nav style="display:flex; justify-content:center; gap:0.5rem; margin-top:1rem;">
+  {{if .Pagination.HasPrev}}
+    <a href="?page={{sub .Pagination.Page 1}}">Prev</a>
+  {{end}}
+
+  <a href="?page=1" {{if eq .Pagination.Page 1}}style="font-weight:bold;"{{end}}>1</a>
+
+  {{if .Pagination.ShowStartEllipsis}}<span>...</span>{{end}}
+
+  {{range .Pagination.Pages}}
+    <a href="?page={{.}}" {{if eq $.Pagination.Page .}}style="font-weight:bold;"{{end}}>{{.}}</a>
+  {{end}}
+
+  {{if .Pagination.ShowEndEllipsis}}<span>...</span>{{end}}
+
+  {{if gt .Pagination.TotalPages 1}}
+    <a href="?page={{.Pagination.TotalPages}}" {{if eq .Pagination.Page .Pagination.TotalPages}}style="font-weight:bold;"{{end}}>{{.Pagination.TotalPages}}</a>
+  {{end}}
+
+  {{if .Pagination.HasNext}}
+    <a href="?page={{add .Pagination.Page 1}}">Next</a>
+  {{end}}
+</nav>
+{{end}}
+
+
 {{if .User}}
 <form method="POST" action="/thread/{{.Thread.ID}}/reply" style="margin-top:2rem;">
   <textarea name="content" rows="4" placeholder="Write your reply..." required style="width:100%; padding:0.75rem; border:1px solid var(--border); background:var(--card); color:var(--text); border-radius:0.25rem; resize:vertical;"></textarea>

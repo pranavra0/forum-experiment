@@ -76,7 +76,14 @@ func ShowThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	replies, err := models.GetRepliesByThreadID(id)
+	pageStr := r.URL.Query().Get("page")
+	page, _ := strconv.Atoi(pageStr)
+	if page < 1 {
+		page = 1
+	}
+	const pageSize = 10
+
+	replies, totalPages, err := models.GetPaginatedRepliesByThreadID(id, page, pageSize)
 	if err != nil {
 		http.Error(w, "could not load replies", http.StatusInternalServerError)
 		return
@@ -87,9 +94,12 @@ func ShowThread(w http.ResponseWriter, r *http.Request) {
 		user = u.(*models.User)
 	}
 
+	pagination := BuildPagination(page, totalPages)
+
 	Render(w, "view_thread", map[string]any{
-		"Thread":  thread,
-		"Replies": replies,
-		"User":    user,
+		"Thread":     thread,
+		"Replies":    replies,
+		"User":       user,
+		"Pagination": pagination,
 	})
 }
