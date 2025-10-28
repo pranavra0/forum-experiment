@@ -1,14 +1,11 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
-	"strconv"
 
 	"forum-experiment/models"
 )
 
-// --- Pagination logic ---
 func BuildPagination(page, totalPages int) Pagination {
 	if totalPages <= 0 {
 		return Pagination{}
@@ -46,52 +43,16 @@ func BuildPagination(page, totalPages int) Pagination {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	pageStr := r.URL.Query().Get("page")
-	page := 1
-	if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-		page = p
-	}
-
 	user, _ := r.Context().Value("user").(*models.User)
-	const pageSize = 10
 
-	threads, totalPages, err := models.GetPaginatedThreads(page, pageSize)
+	sections, err := models.GetAllSectionsWithLastPost()
 	if err != nil {
-		http.Error(w, "Error loading threads", http.StatusInternalServerError)
+		http.Error(w, "Failed to load sections", http.StatusInternalServerError)
 		return
 	}
 
-	var ids []int
-	for _, t := range threads {
-		ids = append(ids, t.ID)
-	}
-
-	replyCounts, err := models.GetReplyCountForThreads(ids)
-	if err != nil {
-		log.Printf("⚠️ Error fetching reply counts: %v", err)
-	} else {
-		for i := range threads {
-			if count, ok := replyCounts[threads[i].ID]; ok {
-				threads[i].ReplyCount = count
-			}
-		}
-	}
-
-	pagination := BuildPagination(page, totalPages)
-
-	log.Printf("DEBUG pagination: page=%d totalPages=%d pages=%v", page, totalPages, pagination.Pages)
-
-	data := map[string]any{
-		"User":              user,
-		"Threads":           threads,
-		"Page":              pagination.Page,
-		"TotalPages":        pagination.TotalPages,
-		"Pages":             pagination.Pages,
-		"ShowStartEllipsis": pagination.ShowStartEllipsis,
-		"ShowEndEllipsis":   pagination.ShowEndEllipsis,
-		"HasPrev":           pagination.HasPrev,
-		"HasNext":           pagination.HasNext,
-	}
-
-	Render(w, "home", data)
+	Render(w, "home", map[string]any{
+		"User":     user,
+		"Sections": sections,
+	})
 }

@@ -1,8 +1,20 @@
 {{define "content"}}
-<h2>Start a New Thread</h2>
+<h2>Create New Thread</h2>
+
 <form method="POST" action="/thread/new">
-    <input name="title" placeholder="Title" required />
-    <textarea name="content" rows="8" placeholder="Write your thread content..." required></textarea>
-    <button type="submit">Publish Thread</button>
+  <label>Title</label>
+  <input name="title" required>
+
+  <label>Section</label>
+  <select name="section_id" required>
+    {{range .Sections}}
+      <option value="{{.ID}}">{{.Name}}</option>
+    {{end}}
+  </select>
+
+  <label>Content</label>
+  <textarea name="content" rows="6" required></textarea>
+
+  <button type="submit">Create</button>
 </form>
 {{end}}

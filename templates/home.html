@@ -1,70 +1,32 @@
 {{define "content"}}
-<h2>Threads</h2>
-{{if .Threads}}
-  {{range .Threads}}
-    <article class="thread">
-      <h3><a href="/thread/{{.ID}}">{{.Title}}</a></h3>
-      <small>
-      Posted by <strong>{{.Username}}</strong> - {{.FormattedTime}} -
-      {{.ReplyCount}} {{if eq .ReplyCount 1}}reply{{else}}replies{{end}}
-      </small>
-      <p>{{.Content}}</p>
-    </article>
-  {{end}}
+<h2>Sections</h2>
 
-  <nav style="margin-top:1.5rem; display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
-
-    <!-- numbered pagination -->
-    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; align-items:center;">
-
-      <!-- Show first page always -->
-      <a href="/?page=1">1</a>
-
-      {{if .ShowStartEllipsis}}
-        <span>…</span>
-      {{end}}
-
-      <!-- Middle pages -->
-      {{range .Pages}}
-        {{if eq . $.Page}}
-          <strong>[{{.}}]</strong>
-        {{else}}
-          <a href="/?page={{.}}">{{.}}</a>
-        {{end}}
-      {{end}}
-
-      {{if .ShowEndEllipsis}}
-        <span>…</span>
-      {{end}}
-
-      <!-- Last page, only if > 1 -->
-      {{if gt .TotalPages 1}}
-        <a href="/?page={{.TotalPages}}">{{.TotalPages}}</a>
-      {{end}}
-
-    </div>
-
-    <!-- jump to page form -->
-    <button id="show-jump" type="button" style="margin-top:0.5rem;">Jump to page</button>
-
-    <form id="jump-form" action="/" method="get" style="display:none; margin-top:0.5rem;">
-      <input type="number" name="page" min="1" max="{{.TotalPages}}" style="width:4rem;" placeholder="#">
-      <button type="submit">Go</button>
-    </form>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        const btn = document.getElementById("show-jump");
-        const form = document.getElementById("jump-form");
-        btn.addEventListener("click", () => {
-          form.style.display = form.style.display === "none" ? "inline-block" : "none";
-        });
-      });
-    </script>
-
-  </nav>
-
+{{if .Sections}}
+  <div class="sections" style="display:flex; flex-direction:column; gap:0.25rem;">
+    {{range .Sections}}
+      <article class="section" style="padding:0.5rem 1rem; border:1px solid #2b2b2b; display:flex; justify-content:space-between; align-items:center; font-size:0.875rem;">
+        <div class="section-info">
+          <h3 style="margin:0; font-size:1rem;">
+            <a href="/section/{{.ID}}" style="text-decoration:none; color:#000;">{{.Name}}</a>
+          </h3>
+          {{if .Description}}
+            <p style="margin:0; color:#2b2b2b;">{{.Description}}</p>
+          {{end}}
+        </div>
+        <div class="last-post" style="text-align:right; color:#2b2b2b; font-size:0.75rem;">
+          {{if .LastPost}}
+            <div>
+              <a href="/thread/{{.LastPost.ID}}" style="color:#2b2b2b; text-decoration:none;"><strong>{{.LastPost.Title}}</strong></a><br>
+              {{.LastPost.Username}} – {{.LastPost.FormattedTime}}
+            </div>
+          {{else}}
+            <div>No replies</div>
+          {{end}}
+        </div>
+      </article>
+    {{end}}
+  </div>
 {{else}}
-  <p>No threads yet — start one!</p>
+  <p>No sections yet - add some!</p>
 {{end}}
 {{end}}

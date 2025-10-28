@@ -18,11 +18,12 @@ func main() {
 	controllers.InitTemplates()
 	r := chi.NewRouter()
 
-	// middleware 
+	// middleware
 	r.Use(controllers.WithUser)
 
 	// Routes
-r.Get("/", controllers.HomeHandler)
+	r.Get("/", controllers.HomeHandler)
+	r.Get("/section/{id}", controllers.SectionHandler)
 	r.Get("/thread/new", controllers.NewThreadForm)
 	r.Post("/thread/new", controllers.CreateThread)
 	r.Get("/thread/{id}", controllers.ShowThread)
@@ -34,8 +35,6 @@ r.Get("/", controllers.HomeHandler)
 	r.Get("/logout", controllers.Logout)
 	r.Post("/logout", controllers.Logout)
 
-
-	
 	log.Println("Server running at http://localhost:8080")
 	http.ListenAndServe(":8080", r)
 }

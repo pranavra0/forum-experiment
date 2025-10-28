@@ -3,7 +3,9 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+
 	"forum-experiment/models"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -14,8 +16,15 @@ func NewThreadForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sections, err := models.GetAllSectionsWithLastPost()
+	if err != nil {
+		http.Error(w, "could not load sections", http.StatusInternalServerError)
+		return
+	}
+
 	Render(w, "new", map[string]any{
-		"User": user,
+		"User":     user,
+		"Sections": sections,
 	})
 }
 
@@ -33,13 +42,18 @@ func CreateThread(w http.ResponseWriter, r *http.Request) {
 
 	title := r.PostForm.Get("title")
 	content := r.PostForm.Get("content")
+	sectionStr := r.PostForm.Get("section_id")
+	sectionID, _ := strconv.Atoi(sectionStr)
+	if sectionID == 0 {
+		sectionID = 1 // fallback default section
+	}
 
 	if title == "" || content == "" {
 		http.Error(w, "title and content required", http.StatusBadRequest)
 		return
 	}
 
-	_, err := models.CreateThread(title, content, user.ID)
+	_, err := models.CreateThread(title, content, user.ID, sectionID)
 	if err != nil {
 		http.Error(w, "could not create thread", http.StatusInternalServerError)
 		return

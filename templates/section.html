@@ -1,0 +1,70 @@
+{{define "content"}}
+<h2>{{.Section.Name}}</h2>
+
+{{if .Threads}}
+  <div class="threads" style="display:flex; flex-direction:column; gap:0.25rem;">
+    {{range .Threads}}
+      <article class="thread" style="padding:0.5rem 1rem; border:1px solid #2b2b2b; display:flex; justify-content:space-between; align-items:center; font-size:0.875rem;">
+        <div class="thread-info" style="display:flex; flex-direction:column;">
+          <h3 style="margin:0; font-size:1rem;">
+            <a href="/thread/{{.ID}}" style="text-decoration:none; color:#000;">{{.Title}}</a>
+          </h3>
+          <small style="color:#2b2b2b; margin-top:0.25rem;">
+            By <strong>{{.Username}}</strong> • {{.ReplyCount}} {{if eq .ReplyCount 1}}reply{{else}}replies{{end}}
+          </small>
+        </div>
+        <div class="thread-time" style="text-align:right; color:#2b2b2b; font-size:0.75rem;">
+          {{.FormattedTime}}
+        </div>
+      </article>
+    {{end}}
+  </div>
+
+  <nav style="margin-top:1.5rem; display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
+    <!-- pagination unchanged -->
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; align-items:center;">
+      <a href="/section/{{.Section.ID}}?page=1">1</a>
+
+      {{if .ShowStartEllipsis}}
+        <span>…</span>
+      {{end}}
+
+      {{range .Pages}}
+        {{if eq . $.Page}}
+          <strong>[{{.}}]</strong>
+        {{else}}
+          <a href="/section/{{$.Section.ID}}?page={{.}}">{{.}}</a>
+        {{end}}
+      {{end}}
+
+      {{if .ShowEndEllipsis}}
+        <span>…</span>
+      {{end}}
+
+      {{if gt .TotalPages 1}}
+        <a href="/section/{{.Section.ID}}?page={{.TotalPages}}">{{.TotalPages}}</a>
+      {{end}}
+    </div>
+
+    <button id="show-jump" type="button" style="margin-top:0.5rem;">Jump to page</button>
+
+    <form id="jump-form" action="/section/{{.Section.ID}}" method="get" style="display:none; margin-top:0.5rem;">
+      <input type="number" name="page" min="1" max="{{.TotalPages}}" style="width:4rem;" placeholder="#">
+      <button type="submit">Go</button>
+    </form>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const btn = document.getElementById("show-jump");
+        const form = document.getElementById("jump-form");
+        btn.addEventListener("click", () => {
+          form.style.display = form.style.display === "none" ? "inline-block" : "none";
+        });
+      });
+    </script>
+  </nav>
+
+{{else}}
+  <p>No threads in this section yet - be the first!</p>
+{{end}}
+{{end}}

@@ -3,8 +3,9 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	_ "modernc.org/sqlite" // no cgo lol
 	"time"
+
+	_ "modernc.org/sqlite" // no cgo lol
 )
 
 var Conn *sql.DB
@@ -20,22 +21,23 @@ func Init(path string) error {
 
 	schema := `
 	CREATE TABLE IF NOT EXISTS threads (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	title TEXT NOT NULL,
-	content TEXT NOT NULL,
-	user_id INTEGER NOT NULL,
-	created_at DATETIME NOT NULL,
-	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		title TEXT NOT NULL,
+		content TEXT NOT NULL,
+		user_id INTEGER NOT NULL,
+		section_id INTEGER NOT NULL DEFAULT 1,
+		created_at DATETIME NOT NULL,
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 	);
 
 	CREATE TABLE IF NOT EXISTS replies (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	thread_id INTEGER NOT NULL,
-	user_id INTEGER NOT NULL,
-	content TEXT NOT NULL,
-	created_at DATETIME NOT NULL,
-	FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE,
-	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		thread_id INTEGER NOT NULL,
+		user_id INTEGER NOT NULL,
+		content TEXT NOT NULL,
+		created_at DATETIME NOT NULL,
+		FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE,
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 	);
 	
 	CREATE TABLE IF NOT EXISTS users (
@@ -52,6 +54,12 @@ func Init(path string) error {
 		token TEXT NOT NULL UNIQUE,
 		created_at TEXT NOT NULL,
 		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	);
+
+	CREATE TABLE IF NOT EXISTS sections (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT UNIQUE NOT NULL,
+		description TEXT
 	);
 	`
 	if _, err := Conn.Exec(schema); err != nil {

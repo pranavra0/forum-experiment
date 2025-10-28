@@ -12,15 +12,18 @@ type Thread struct {
 	Content    string
 	UserID     int
 	Username   string
+	SectionID  int
 	CreatedAt  time.Time
 	ReplyCount int
 }
 
 func GetAllThreads() ([]Thread, error) {
 	rows, err := db.Conn.Query(`
-		SELECT t.id, t.title, t.content, t.created_at, t.user_id, u.username
+		SELECT t.id, t.title, t.content, t.created_at, t.user_id, u.username,
+		       t.section_id, s.name
 		FROM threads t
 		JOIN users u ON t.user_id = u.id
+		JOIN sections s ON t.section_id = s.id
 		ORDER BY t.created_at DESC
 	`)
 	if err != nil {
@@ -32,7 +35,10 @@ func GetAllThreads() ([]Thread, error) {
 	for rows.Next() {
 		var t Thread
 		var created string
-		if err := rows.Scan(&t.ID, &t.Title, &t.Content, &created, &t.UserID, &t.Username); err != nil {
+		if err := rows.Scan(
+			&t.ID, &t.Title, &t.Content, &created,
+			&t.UserID, &t.Username, &t.SectionID, &t.SectionID,
+		); err != nil {
 			return nil, err
 		}
 		t.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
@@ -41,19 +47,22 @@ func GetAllThreads() ([]Thread, error) {
 	return threads, rows.Err()
 }
 
-func CreateThread(title, content string, userID int64) (int64, error) {
-	stmt, err := db.Conn.Prepare("INSERT INTO threads (title, content, user_id, created_at) VALUES (?, ?, ?, ?)")
+func CreateThread(title, content string, userID int64, sectionID int) (int64, error) {
+	stmt, err := db.Conn.Prepare(`
+		INSERT INTO threads (title, content, user_id, created_at, section_id)
+		VALUES (?, ?, ?, ?, ?)
+	`)
 	if err != nil {
 		return 0, err
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(title, content, userID, time.Now().Format(time.RFC3339Nano))
+	res, err := stmt.Exec(title, content, userID, time.Now().Format(time.RFC3339Nano), sectionID)
 	if err != nil {
 		return 0, err
 	}
 
-	log.Printf("✅ User %d created thread: %s", userID, title)
+	log.Printf("✅ User %d created thread in section %d: %s", userID, sectionID, title)
 	return res.LastInsertId()
 }
 
@@ -61,11 +70,13 @@ func GetThreadByID(id int) (Thread, error) {
 	var t Thread
 	var created string
 	err := db.Conn.QueryRow(`
-		SELECT t.id, t.title, t.content, t.created_at, t.user_id, u.username
+		SELECT t.id, t.title, t.content, t.created_at, t.user_id, u.username,
+		       t.section_id
 		FROM threads t
 		JOIN users u ON t.user_id = u.id
+		JOIN sections s ON t.section_id = s.id
 		WHERE t.id = ?
-	`, id).Scan(&t.ID, &t.Title, &t.Content, &created, &t.UserID, &t.Username)
+	`, id).Scan(&t.ID, &t.Title, &t.Content, &created, &t.UserID, &t.Username, &t.SectionID)
 	if err == nil {
 		t.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
 	}
@@ -78,16 +89,17 @@ func (t Thread) FormattedTime() string {
 
 // pagination logic
 
-func GetPaginatedThreads(page, pageSize int) ([]Thread, int, error) {
+func GetPaginatedThreadsBySection(sectionID, page, pageSize int) ([]Thread, int, error) {
 	offset := (page - 1) * pageSize
 
 	rows, err := db.Conn.Query(`
-		SELECT t.id, t.title, t.content, t.user_id, u.username, t.created_at
+		SELECT t.id, t.title, t.content, t.user_id, u.username, t.created_at, t.section_id
 		FROM threads t
 		JOIN users u ON t.user_id = u.id
+		WHERE t.section_id = ?
 		ORDER BY t.created_at DESC
 		LIMIT ? OFFSET ?
-	`, pageSize, offset)
+	`, sectionID, pageSize, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -97,7 +109,10 @@ func GetPaginatedThreads(page, pageSize int) ([]Thread, int, error) {
 	for rows.Next() {
 		var t Thread
 		var created string
-		if err := rows.Scan(&t.ID, &t.Title, &t.Content, &t.UserID, &t.Username, &created); err != nil {
+		if err := rows.Scan(
+			&t.ID, &t.Title, &t.Content, &t.UserID,
+			&t.Username, &created, &t.SectionID,
+		); err != nil {
 			return nil, 0, err
 		}
 		t.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
@@ -105,11 +120,11 @@ func GetPaginatedThreads(page, pageSize int) ([]Thread, int, error) {
 	}
 
 	var total int
-	if err := db.Conn.QueryRow(`SELECT COUNT(*) FROM threads`).Scan(&total); err != nil {
+	if err := db.Conn.QueryRow(`SELECT COUNT(*) FROM threads WHERE section_id = ?`, sectionID).Scan(&total); err != nil {
 		return nil, 0, err
 	}
-	totalPages := (total + pageSize - 1) / pageSize
 
+	totalPages := (total + pageSize - 1) / pageSize
 	return threads, totalPages, nil
 }
 
@@ -118,7 +133,6 @@ func GetReplyCountForThreads(threadIDs []int) (map[int]int, error) {
 		return map[int]int{}, nil
 	}
 
-	// Build a dynamic query like (?,?,?,?)
 	query := "SELECT thread_id, COUNT(*) FROM replies WHERE thread_id IN ("
 	params := make([]any, len(threadIDs))
 	for i, id := range threadIDs {
