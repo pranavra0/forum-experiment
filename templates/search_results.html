@@ -1,0 +1,26 @@
+{{define "content"}}
+<h2>Search results for "{{.Query}}"</h2>
+
+{{if .Results}}
+  <div class="threads" style="display:flex; flex-direction:column; gap:0.5rem;">
+    {{range .Results}}
+      <article class="thread" 
+        style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 1rem; border:1px solid var(--border); background:var(--card); border-radius:0.25rem;">
+
+        <div class="thread-info" style="display:flex; flex-direction:column;">
+          <h3 style="margin:0; font-size:1rem;">
+            <a href="/thread/{{.ID}}" style="color:var(--accent); text-decoration:none;">
+              {{highlight .Title $.Query}}
+            </a>
+          </h3>
+          <small style="color:var(--muted); margin-top:0.25rem;">
+            By <strong>{{.Username}}</strong> • {{.FormattedTime}}
+          </small>
+        </div>
+      </article>
+    {{end}}
+  </div>
+{{else}}
+  <p>No threads matched your search.</p>
+{{end}}
+{{end}}

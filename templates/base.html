@@ -117,7 +117,6 @@
       opacity: 0.9;
     }
 
-    /* Small tweaks for inline logout form */
     header form {
       background: none;
       border: none;
@@ -138,11 +137,61 @@
     header form button:hover {
       color: var(--accent);
     }
+
+    /*search stuff*/
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-left: auto; 
+  }
+
+  .nav-separator {
+    width: 1px;
+    height: 22px;
+    background: var(--border);
+    margin: 0 0.5rem;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+  }
+
+  .search-bar input {
+    border: none;
+    border-radius: 20px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    width: 160px;
+    backdrop-filter: blur(12px);
+  }
+
+  .search-bar input::placeholder {
+    color: var(--muted);
+  }
+
+  .search-bar input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid var(--accent);
+  }
+
   </style>
 </head>
 <body>
   <header>
-    <h1><a href="/">The Forum</a></h1>
+  <h1><a href="/">The Forum</a></h1>
+
+  <div class="header-right">
+    <form action="/search" method="get" class="search-bar">
+      <input type="text" name="q" placeholder="Search..." value="{{.Query}}" />
+    </form>
+
+    <div class="nav-separator"></div>
+
     <nav class="nav-links">
       {{with .User}}
         <span style="color: var(--muted);">Hi, {{.Username}}</span>
@@ -156,7 +205,8 @@
         <a href="/thread/new" style="color: var(--accent);">New Thread</a>
       {{end}}
     </nav>
-  </header>
+  </div>
+</header>
 
   <main>
     {{block "content" .}}{{end}}

@@ -56,3 +56,25 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		"Sections": sections,
 	})
 }
+
+func SearchHandler(w http.ResponseWriter, r *http.Request) {
+	user, _ := r.Context().Value("user").(*models.User)
+	query := r.URL.Query().Get("q")
+
+	if query == "" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	results, err := models.SearchThreads(query)
+	if err != nil {
+		http.Error(w, "Search failed", http.StatusInternalServerError)
+		return
+	}
+
+	Render(w, "search_results", map[string]any{
+		"User":    user,
+		"Query":   query,
+		"Results": results,
+	})
+}

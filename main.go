@@ -34,6 +34,7 @@ func main() {
 	r.Post("/login", controllers.Login)
 	r.Get("/logout", controllers.Logout)
 	r.Post("/logout", controllers.Logout)
+	r.Get("/search", controllers.SearchHandler)
 
 	log.Println("Server running at http://localhost:8080")
 	http.ListenAndServe(":8080", r)

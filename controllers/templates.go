@@ -5,7 +5,8 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
-    "strings"
+	"regexp"
+	"strings"
 )
 
 var templates map[string]*template.Template
@@ -15,8 +16,9 @@ func InitTemplates() {
 	templates = make(map[string]*template.Template)
 
 	funcs := template.FuncMap{
-		"add": func(a, b int) int { return a + b },
-		"sub": func(a, b int) int { return a - b },
+		"add":       func(a, b int) int { return a + b },
+		"sub":       func(a, b int) int { return a - b },
+		"highlight": highlight,
 	}
 
 	files, err := filepath.Glob("templates/*.html")
@@ -24,20 +26,20 @@ func InitTemplates() {
 		log.Fatalf("Failed to glob templates: %v", err)
 	}
 
-    for _, file := range files {
-        base := filepath.Base(file)
-        name := strings.TrimSuffix(base, ".html")
+	for _, file := range files {
+		base := filepath.Base(file)
+		name := strings.TrimSuffix(base, ".html")
 
 		tmpl := template.New(name).Funcs(funcs)
 
-        tmpl, err = tmpl.ParseFiles("templates/base.html", file)
-        if err != nil {
-            log.Fatalf("Failed to parse template %s: %v", name, err)
-        }
+		tmpl, err = tmpl.ParseFiles("templates/base.html", file)
+		if err != nil {
+			log.Fatalf("Failed to parse template %s: %v", name, err)
+		}
 
-        // Instead of storing all templates globally, store each page separately
-        templates[name] = tmpl
-    }
+		// Instead of storing all templates globally, store each page separately
+		templates[name] = tmpl
+	}
 
 }
 
@@ -54,3 +56,10 @@ func Render(w http.ResponseWriter, name string, data map[string]any) {
 	}
 }
 
+func highlight(text, query string) template.HTML {
+	re := regexp.MustCompile("(?i)" + regexp.QuoteMeta(query))
+	highlighted := re.ReplaceAllStringFunc(text, func(match string) string {
+		return `<mark style="background-color: #fff176; color: black; padding: 0 2px; border-radius: 3px;">` + match + `</mark>`
+	})
+	return template.HTML(highlighted)
+}

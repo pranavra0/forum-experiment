@@ -3,6 +3,7 @@ package models
 import (
 	"forum-experiment/db"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -160,4 +161,36 @@ func GetReplyCountForThreads(threadIDs []int) (map[int]int, error) {
 	}
 
 	return counts, nil
+}
+
+func SearchThreads(query string) ([]Thread, error) {
+	search := "%" + strings.ToLower(query) + "%"
+
+	rows, err := db.Conn.Query(`
+		SELECT t.id, t.title, t.content, t.user_id, u.username, t.created_at, t.section_id
+		FROM threads t
+		JOIN users u ON t.user_id = u.id
+		WHERE LOWER(t.title) LIKE ? OR LOWER(t.content) LIKE ?
+		ORDER BY t.created_at DESC
+	`, search, search)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var threads []Thread
+	for rows.Next() {
+		var t Thread
+		var created string
+		if err := rows.Scan(
+			&t.ID, &t.Title, &t.Content, &t.UserID,
+			&t.Username, &created, &t.SectionID,
+		); err != nil {
+			return nil, err
+		}
+		t.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
+		threads = append(threads, t)
+	}
+
+	return threads, rows.Err()
 }
