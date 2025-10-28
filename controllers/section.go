@@ -11,12 +11,14 @@ import (
 )
 
 func SectionHandler(w http.ResponseWriter, r *http.Request) {
+
 	sectionIDStr := chi.URLParam(r, "id")
 	sectionID, err := strconv.Atoi(sectionIDStr)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
+	user, _ := r.Context().Value("user").(*models.User)
 
 	pageStr := r.URL.Query().Get("page")
 	page := 1
@@ -56,6 +58,7 @@ func SectionHandler(w http.ResponseWriter, r *http.Request) {
 	pagination := BuildPagination(page, totalPages)
 
 	data := map[string]any{
+		"User":              user,
 		"Section":           section,
 		"Threads":           threads,
 		"Page":              pagination.Page,

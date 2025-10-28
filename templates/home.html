@@ -2,22 +2,27 @@
 <h2>Sections</h2>
 
 {{if .Sections}}
-  <div class="sections" style="display:flex; flex-direction:column; gap:0.25rem;">
+  <div class="sections" style="display:flex; flex-direction:column; gap:0.5rem;">
     {{range .Sections}}
-      <article class="section" style="padding:0.5rem 1rem; border:1px solid #2b2b2b; display:flex; justify-content:space-between; align-items:center; font-size:0.875rem;">
-        <div class="section-info">
+      <article class="section" 
+        style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem; border:1px solid var(--border); background:var(--card); border-radius:0.25rem;">
+
+        <div class="section-info" style="display:flex; flex-direction:column; justify-content:center;">
           <h3 style="margin:0; font-size:1rem;">
-            <a href="/section/{{.ID}}" style="text-decoration:none; color:#000;">{{.Name}}</a>
+            <a href="/section/{{.ID}}" style="color:var(--accent); text-decoration:none;">{{.Name}}</a>
           </h3>
           {{if .Description}}
-            <p style="margin:0; color:#2b2b2b;">{{.Description}}</p>
+            <p style="margin:0; color:var(--muted); font-size:0.9rem;">{{.Description}}</p>
           {{end}}
         </div>
-        <div class="last-post" style="text-align:right; color:#2b2b2b; font-size:0.75rem;">
+
+        <div class="last-post" style="text-align:right; color:var(--muted); font-size:0.8rem; white-space:nowrap;">
           {{if .LastPost}}
             <div>
-              <a href="/thread/{{.LastPost.ID}}" style="color:#2b2b2b; text-decoration:none;"><strong>{{.LastPost.Title}}</strong></a><br>
-              {{.LastPost.Username}} – {{.LastPost.FormattedTime}}
+              <a href="/thread/{{.LastPost.ID}}" style="color:var(--accent); text-decoration:none;">
+                <strong>{{.LastPost.Title}}</strong>
+              </a><br>
+              {{.LastPost.Username}} — {{.LastPost.FormattedTime}}
             </div>
           {{else}}
             <div>No replies</div>
@@ -27,6 +32,6 @@
     {{end}}
   </div>
 {{else}}
-  <p>No sections yet - add some!</p>
+  <p>No sections yet — add some!</p>
 {{end}}
 {{end}}

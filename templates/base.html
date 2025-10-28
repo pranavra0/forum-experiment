@@ -5,43 +5,139 @@
   <meta charset="utf-8"/>
   <title>{{block "title" .}}The Forum{{end}}</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-    header { display:flex; justify-content:space-between; align-items:center; }
-
-    a { color: #0366d6; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    /* Threads */
-    .thread {
-      border-bottom: 2px solid #ccc;
-      padding: 1rem 0;
+    :root {
+      --bg: #0b0b0c;
+      --card: rgba(26, 26, 28, 0.75);
+      --border: #2b2b2b;
+      --text: #e6e6e6;
+      --muted: #9b9b9b;
+      --accent: #5ea0ff;
     }
-    .thread small {
-      color: #666;
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+
+    header {
+      width: 100vw;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    header a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    header a:hover {
+      color: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
       font-size: 0.9rem;
     }
 
-    /* Replies */
-    .replies { margin-top: 2rem; }
-    .reply {
-      border-bottom: 1px dotted #e0e0e0;
-      padding: 0.75rem 0;
-      color: #333;
-      font-size: 0.98rem;
-    }
-    .reply small {
-      color: #666;
-      font-size: 0.85rem;
+    main {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
     }
 
-    /* Forms */
-    form input, form textarea { width:100%; padding:8px; margin-bottom:8px; }
-    textarea { resize: vertical; }
+    /* --- Form styling fix --- */
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      background: var(--card);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+    }
 
-    /* Auth / nav */
-    .auth-form { max-width: 400px; margin: 2rem auto; }
-    .error-message { color: #dc2626; margin-bottom: 1rem; padding: 0.5rem; background: #fef2f2; border-radius: 4px; }
-    .nav-links { display: flex; gap: 1rem; align-items: center; }
+    label {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    input, textarea, select {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+      width: 100%;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      align-self: flex-start;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    /* Small tweaks for inline logout form */
+    header form {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      display: inline;
+    }
+
+    header form button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+    }
+
+    header form button:hover {
+      color: var(--accent);
+    }
   </style>
 </head>
 <body>
@@ -49,18 +145,19 @@
     <h1><a href="/">The Forum</a></h1>
     <nav class="nav-links">
       {{with .User}}
-        <span>Welcome, {{.Username}}</span>
-        <a href="/thread/new">New Thread</a>
-        <form method="POST" action="/logout" style="display:inline">
+        <span style="color: var(--muted);">Hi, {{.Username}}</span>
+        <a href="/thread/new" style="color: var(--accent);">New Thread</a>
+        <form method="POST" action="/logout" style="display:inline;">
           <button type="submit">Logout</button>
         </form>
       {{else}}
-        <a href="/login">Login</a>
-        <a href="/register">Register</a>
-        <a href="/thread/new">New Thread</a>
+        <a href="/login" style="color: var(--accent);">Login</a>
+        <a href="/register" style="color: var(--accent);">Register</a>
+        <a href="/thread/new" style="color: var(--accent);">New Thread</a>
       {{end}}
     </nav>
   </header>
+
   <main>
     {{block "content" .}}{{end}}
   </main>
