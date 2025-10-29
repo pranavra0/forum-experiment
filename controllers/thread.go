@@ -76,7 +76,7 @@ func ShowThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//pagination
+	// Pagination
 	pageStr := r.URL.Query().Get("page")
 	page, _ := strconv.Atoi(pageStr)
 	if page < 1 {
@@ -84,6 +84,7 @@ func ShowThread(w http.ResponseWriter, r *http.Request) {
 	}
 	const pageSize = 10
 
+	// Get hierarchical replies with pagination on root-level replies
 	replies, totalPages, err := models.GetPaginatedRepliesByThreadID(id, page, pageSize)
 	if err != nil {
 		http.Error(w, "could not load replies", http.StatusInternalServerError)

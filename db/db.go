@@ -34,10 +34,12 @@ func Init(path string) error {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		thread_id INTEGER NOT NULL,
 		user_id INTEGER NOT NULL,
+		parent_id INTEGER DEFAULT NULL,
 		content TEXT NOT NULL,
 		created_at DATETIME NOT NULL,
 		FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE,
-		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+		FOREIGN KEY (parent_id) REFERENCES replies(id) ON DELETE CASCADE
 	);
 	
 	CREATE TABLE IF NOT EXISTS users (

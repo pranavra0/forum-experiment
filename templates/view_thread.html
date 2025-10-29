@@ -1,38 +1,63 @@
+{{define "renderReplies"}}
+  {{range .Replies}}
+    <article class="reply" id="reply-{{.ID}}" style="
+        border:1px solid var(--border);
+        padding:0.5rem;
+        margin:0.25rem 0;
+        border-radius:0.25rem;
+        font-size:0.85rem;
+        background: rgba(26,26,28,0.5);
+      ">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+        <strong style="color:var(--accent);">{{.Username}}</strong>
+        <small style="color:var(--muted); font-size:0.75rem;">{{.FormattedTime}}</small>
+        {{if $.User}}
+        <button type="button" onclick="prefillReply({{.ID}}, '{{js .Username}}')" style="
+            font-size:0.7rem;
+            padding:0 3px;
+            border:none;
+            background:none;
+            color: var(--accent);
+            cursor:pointer;
+          ">
+          Reply
+        </button>
+        {{end}}
+      </div>
+      <p style="margin:0; line-height:1.3; white-space:pre-wrap;">{{parseQuotes .Content}}</p>
+    </article>
+  {{end}}
+{{end}}
+
 {{define "content"}}
 {{with .Thread}}
-<article class="thread" style="padding:1rem; border:1px solid var(--border); background:var(--card); border-radius:0.25rem; margin-bottom:1rem;">
-  <h2 style="margin:0 0 0.25rem 0;">{{.Title}}</h2>
-  <div style="color:var(--muted); font-size:0.85rem; margin-bottom:0.75rem;">
+<article class="thread" style="
+    padding:0.5rem 0.75rem;
+    border:1px solid var(--border);
+    border-radius:0.25rem;
+    margin-bottom:0.5rem;
+    font-size:0.9rem;
+  ">
+  <h2 style="margin:0 0 0.25rem 0; font-size:1rem;">{{.Title}}</h2>
+  <div style="color:var(--muted); font-size:0.75rem; margin-bottom:0.25rem;">
     Posted by <strong>{{.Username}}</strong> — {{.FormattedTime}}
   </div>
-  <p style="margin:0; line-height:1.5;">{{.Content}}</p>
+  <p style="margin:0; line-height:1.3;">{{.Content}}</p>
 </article>
 {{end}}
 
-<section class="replies" style="margin-top:2rem;">
+<section class="replies" style="margin-top:1rem;">
   <h3>Replies</h3>
   {{if .Replies}}
-    <div style="display:flex; flex-direction:column; gap:0.75rem;">
-    {{range .Replies}}
-      <article class="reply" id="reply-{{.ID}}" style="border:1px solid var(--border); background:var(--card); border-radius:0.25rem; padding:0.75rem 1rem;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-          <strong style="color:var(--accent);">{{.Username}}</strong>
-          <small style="color:var(--muted); font-size:0.8rem;">{{.FormattedTime}}</small>
-        </div>
-        <p style="margin:0; color:var(--text); line-height:1.5;">{{.Content}}</p>
-        {{if $.User}}
-          <button type="button" onclick="prefillReply({{.ID}}, '{{js .Username}}', '{{js .Content}}')" style="margin-top:0.5rem; font-size:0.8rem;">Reply</button>
-        {{end}}
-      </article>
-    {{end}}
+    <div style="display:flex; flex-direction:column; gap:0.5rem;">
+      {{template "renderReplies" dict "Replies" .Replies "Level" 0 "User" .User}}
     </div>
   {{else}}
     <p>No replies yet.</p>
   {{end}}
 </section>
-
 {{if gt .Pagination.TotalPages 1}}
-<nav style="display:flex; justify-content:center; gap:0.5rem; margin-top:1rem;">
+<nav style="display:flex; justify-content:center; gap:0.5rem; margin-top:1rem; font-size:0.85rem;">
   {{if .Pagination.HasPrev}}
     <a href="?page={{sub .Pagination.Page 1}}">Prev</a>
   {{end}}
@@ -57,56 +82,60 @@
 
 {{if .User}}
 <form method="POST" action="/thread/{{.Thread.ID}}/reply" style="margin-top:2rem;">
-  <textarea name="content" rows="4" placeholder="Write your reply..." required style="width:100%; padding:0.75rem; border:1px solid var(--border); background:var(--card); color:var(--text); border-radius:0.25rem; resize:vertical;"></textarea>
+  <input type="hidden" name="parent_id" id="parent_id" value="">
+  
+  <div id="replying-to" style="
+        font-size: 0.8rem; 
+        color: var(--accent); 
+        margin-bottom: 0.25rem;
+        display: none;
+      ">
+    Replying to <span id="replying-username"></span>
+    <button type="button" onclick="clearReply()" style="
+          font-size:0.7rem;
+          color:var(--muted);
+          background:none;
+          border:none;
+          cursor:pointer;
+          margin-left:0.5rem;
+        ">Cancel</button>
+  </div>
+
+  <textarea name="content" rows="4" placeholder="Write your reply..." required style="
+        width:100%; padding:0.75rem; border:1px solid var(--border); background:var(--card); 
+        color:var(--text); border-radius:0.25rem; resize:vertical;">
+  </textarea>
   <button type="submit" style="margin-top:0.5rem;">Post Reply</button>
 </form>
-{{else}}
-<p><a href="/login">Log in to reply</a></p>
 {{end}}
 
-<!-- Slim quote box CSS -->
-<style>
-.quote {
-  border: 1px solid var(--border);
-  background: rgba(0,0,0,0.03);
-  padding: 0.25rem 0.5rem;
-  margin: 0.25rem 0 0.5rem 0;
-  border-radius: 0.25rem;
-  font-size: 0.9rem;
-  color: var(--muted);
-  white-space: pre-wrap;
-}
-.quote strong {
-  color: var(--accent);
-  margin-right: 0.25rem;
-}
-</style>
+<script type="text/javascript">
+function prefillReply(id, username) {
+    const parentInput = document.getElementById('parent_id');
+    const replyingDiv = document.getElementById('replying-to');
+    const replyingUsername = document.getElementById('replying-username');
+    const textarea = document.querySelector('textarea[name=content]');
+    
+    if (!parentInput || !replyingDiv || !replyingUsername || !textarea) return;
 
-<script>
-function parseQuotes(text) {
-  const regex = /\(replyID:(\d+),\s*replyusername:([^,]+),\s*replycontent:"((?:\\.|[^"\\])*)"\)/g;
-  let result = text;
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    const [fullMatch, id, username, content] = match;
-    const unescapedContent = content.replace(/\\"/g, '"');
-    const replacement = `<div class="quote"><strong>${username}</strong>: "${unescapedContent}"</div>`;
-    result = result.replace(fullMatch, replacement);
-  }
-  return result;
+    parentInput.value = id;
+    replyingUsername.textContent = username;
+    replyingDiv.style.display = "block";
+
+    textarea.focus();
+    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-document.querySelectorAll('.reply p').forEach(p => {
-  p.innerHTML = parseQuotes(p.textContent);
-});
+function clearReply() {
+    const parentInput = document.getElementById('parent_id');
+    const replyingDiv = document.getElementById('replying-to');
+    const replyingUsername = document.getElementById('replying-username');
 
-function prefillReply(id, username, content) {
-  const textarea = document.querySelector('textarea[name=content]');
-  if (!textarea) return;
-  const snippet = `(replyID:${id}, replyusername:${username}, replycontent:"${content.substring(0, 80).replace(/"/g,'\\"')}")\n`;
-  textarea.value = snippet;
-  textarea.focus();
-  textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!parentInput || !replyingDiv || !replyingUsername) return;
+
+    parentInput.value = "";
+    replyingUsername.textContent = "";
+    replyingDiv.style.display = "none";
 }
 </script>
 {{end}}

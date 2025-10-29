@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -16,9 +17,13 @@ func InitTemplates() {
 	templates = make(map[string]*template.Template)
 
 	funcs := template.FuncMap{
-		"add":       func(a, b int) int { return a + b },
-		"sub":       func(a, b int) int { return a - b },
-		"highlight": highlight,
+		"add":         func(a, b int) int { return a + b },
+		"sub":         func(a, b int) int { return a - b },
+		"highlight":   highlight,
+		"dict":        dict,
+		"mul":         mul,
+		"mod":         mod,
+		"parseQuotes": parseQuotes,
 	}
 
 	files, err := filepath.Glob("templates/*.html")
@@ -62,4 +67,49 @@ func highlight(text, query string) template.HTML {
 		return `<mark style="background-color: #fff176; color: black; padding: 0 2px; border-radius: 3px;">` + match + `</mark>`
 	})
 	return template.HTML(highlighted)
+}
+
+func dict(values ...any) (map[string]any, error) {
+	if len(values)%2 != 0 {
+		return nil, fmt.Errorf("invalid dict call: uneven number of arguments")
+	}
+	d := make(map[string]any, len(values)/2)
+	for i := 0; i < len(values); i += 2 {
+		key, ok := values[i].(string)
+		if !ok {
+			return nil, fmt.Errorf("dict keys must be strings, got %T", values[i])
+		}
+		d[key] = values[i+1]
+	}
+	return d, nil
+}
+
+func mul(a, b int) int {
+	return a * b
+}
+
+func mod(a, b int) int {
+	if b == 0 {
+		return 0
+	}
+	return a % b
+}
+
+func parseQuotes(content string) template.HTML {
+	re := regexp.MustCompile(`(?s)\[quote=(.*?)\](.*?)\[/quote\]`)
+
+	// While there is at least one [quote], replace it
+	for re.MatchString(content) {
+		content = re.ReplaceAllStringFunc(content, func(match string) string {
+			parts := re.FindStringSubmatch(match)
+			if len(parts) < 3 {
+				return match
+			}
+			user := template.HTMLEscapeString(parts[1])
+			inner := parseQuotes(parts[2]) // <-- recurse here!
+			return `<div class="quote"><strong>` + user + ` said:</strong>` + string(inner) + `</div>`
+		})
+	}
+
+	return template.HTML(content)
 }

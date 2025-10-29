@@ -34,7 +34,16 @@ func CreateReply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.CreateReply(threadID, user.ID, content); err != nil {
+	var parentID *int
+	parentStr := r.PostForm.Get("parent_id")
+	if parentStr != "" {
+		pid, err := strconv.Atoi(parentStr)
+		if err == nil {
+			parentID = &pid
+		}
+	}
+
+	if err := models.CreateReply(threadID, user.ID, content, parentID); err != nil {
 		http.Error(w, "could not save reply", http.StatusInternalServerError)
 		return
 	}
