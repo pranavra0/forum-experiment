@@ -13,15 +13,18 @@
   <h3>Replies</h3>
   {{if .Replies}}
     <div style="display:flex; flex-direction:column; gap:0.75rem;">
-      {{range .Replies}}
-        <article class="reply" style="border:1px solid var(--border); background:var(--card); border-radius:0.25rem; padding:0.75rem 1rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-            <strong style="color:var(--accent);">{{.Username}}</strong>
-            <small style="color:var(--muted); font-size:0.8rem;">{{.FormattedTime}}</small>
-          </div>
-          <p style="margin:0; color:var(--text); line-height:1.5;">{{.Content}}</p>
-        </article>
-      {{end}}
+    {{range .Replies}}
+      <article class="reply" id="reply-{{.ID}}" style="border:1px solid var(--border); background:var(--card); border-radius:0.25rem; padding:0.75rem 1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+          <strong style="color:var(--accent);">{{.Username}}</strong>
+          <small style="color:var(--muted); font-size:0.8rem;">{{.FormattedTime}}</small>
+        </div>
+        <p style="margin:0; color:var(--text); line-height:1.5;">{{.Content}}</p>
+        {{if $.User}}
+          <button type="button" onclick="prefillReply({{.ID}}, '{{js .Username}}', '{{js .Content}}')" style="margin-top:0.5rem; font-size:0.8rem;">Reply</button>
+        {{end}}
+      </article>
+    {{end}}
     </div>
   {{else}}
     <p>No replies yet.</p>
@@ -44,16 +47,13 @@
 
   {{if .Pagination.ShowEndEllipsis}}<span>...</span>{{end}}
 
-  {{if gt .Pagination.TotalPages 1}}
-    <a href="?page={{.Pagination.TotalPages}}" {{if eq .Pagination.Page .Pagination.TotalPages}}style="font-weight:bold;"{{end}}>{{.Pagination.TotalPages}}</a>
-  {{end}}
+  <a href="?page={{.Pagination.TotalPages}}" {{if eq .Pagination.Page .Pagination.TotalPages}}style="font-weight:bold;"{{end}}>{{.Pagination.TotalPages}}</a>
 
   {{if .Pagination.HasNext}}
     <a href="?page={{add .Pagination.Page 1}}">Next</a>
   {{end}}
 </nav>
 {{end}}
-
 
 {{if .User}}
 <form method="POST" action="/thread/{{.Thread.ID}}/reply" style="margin-top:2rem;">
@@ -63,4 +63,50 @@
 {{else}}
 <p><a href="/login">Log in to reply</a></p>
 {{end}}
+
+<!-- Slim quote box CSS -->
+<style>
+.quote {
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.03);
+  padding: 0.25rem 0.5rem;
+  margin: 0.25rem 0 0.5rem 0;
+  border-radius: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+.quote strong {
+  color: var(--accent);
+  margin-right: 0.25rem;
+}
+</style>
+
+<script>
+function parseQuotes(text) {
+  const regex = /\(replyID:(\d+),\s*replyusername:([^,]+),\s*replycontent:"((?:\\.|[^"\\])*)"\)/g;
+  let result = text;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const [fullMatch, id, username, content] = match;
+    const unescapedContent = content.replace(/\\"/g, '"');
+    const replacement = `<div class="quote"><strong>${username}</strong>: "${unescapedContent}"</div>`;
+    result = result.replace(fullMatch, replacement);
+  }
+  return result;
+}
+
+document.querySelectorAll('.reply p').forEach(p => {
+  p.innerHTML = parseQuotes(p.textContent);
+});
+
+function prefillReply(id, username, content) {
+  const textarea = document.querySelector('textarea[name=content]');
+  if (!textarea) return;
+  const snippet = `(replyID:${id}, replyusername:${username}, replycontent:"${content.substring(0, 80).replace(/"/g,'\\"')}")\n`;
+  textarea.value = snippet;
+  textarea.focus();
+  textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+</script>
 {{end}}

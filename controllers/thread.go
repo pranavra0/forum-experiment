@@ -76,6 +76,7 @@ func ShowThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//pagination
 	pageStr := r.URL.Query().Get("page")
 	page, _ := strconv.Atoi(pageStr)
 	if page < 1 {
