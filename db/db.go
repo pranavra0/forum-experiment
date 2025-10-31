@@ -47,6 +47,7 @@ func Init(path string) error {
 		username TEXT UNIQUE NOT NULL,
 		email TEXT NOT NULL UNIQUE,
 		password_hash TEXT NOT NULL,
+		is_admin INTEGER DEFAULT 0,
 		created_at TEXT NOT NULL
 	);
 

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"forum-experiment/db"
 	"log"
 	"strings"
@@ -8,14 +9,15 @@ import (
 )
 
 type Thread struct {
-	ID         int
-	Title      string
-	Content    string
-	UserID     int
-	Username   string
-	SectionID  int
-	CreatedAt  time.Time
-	ReplyCount int
+	ID          int
+	Title       string
+	Content     string
+	UserID      int
+	Username    string
+	SectionID   int
+	SectionName string
+	CreatedAt   time.Time
+	ReplyCount  int
 }
 
 func GetAllThreads() ([]Thread, error) {
@@ -38,7 +40,7 @@ func GetAllThreads() ([]Thread, error) {
 		var created string
 		if err := rows.Scan(
 			&t.ID, &t.Title, &t.Content, &created,
-			&t.UserID, &t.Username, &t.SectionID, &t.SectionID,
+			&t.UserID, &t.Username, &t.SectionID, &t.SectionName,
 		); err != nil {
 			return nil, err
 		}
@@ -67,7 +69,7 @@ func CreateThread(title, content string, userID int64, sectionID int) (int64, er
 	return res.LastInsertId()
 }
 
-func GetThreadByID(id int) (Thread, error) {
+func GetThreadByID(id int) (*Thread, error) {
 	var t Thread
 	var created string
 	err := db.Conn.QueryRow(`
@@ -78,10 +80,16 @@ func GetThreadByID(id int) (Thread, error) {
 		JOIN sections s ON t.section_id = s.id
 		WHERE t.id = ?
 	`, id).Scan(&t.ID, &t.Title, &t.Content, &created, &t.UserID, &t.Username, &t.SectionID)
-	if err == nil {
-		t.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
 	}
-	return t, err
+	if err != nil {
+		return nil, err
+	}
+
+	t.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
+	return &t, nil
 }
 
 func (t Thread) FormattedTime() string {
@@ -193,4 +201,23 @@ func SearchThreads(query string) ([]Thread, error) {
 	}
 
 	return threads, rows.Err()
+}
+
+func DeleteThread(threadID int) error {
+	tx, err := db.Conn.Begin()
+	if err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec("DELETE FROM replies WHERE thread_id = ?", threadID); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if _, err := tx.Exec("DELETE FROM threads WHERE id = ?", threadID); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }

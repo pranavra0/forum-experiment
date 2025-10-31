@@ -1,9 +1,9 @@
 package main
 
+// right now this file is just for testing stuff
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"forum-experiment/db"
 	"forum-experiment/models"
@@ -29,26 +29,48 @@ func main() {
 	}
 
 	for _, s := range sections {
-		_, err := db.Conn.Exec(`INSERT INTO sections (name, description) VALUES (?, ?)`, s.Name, s.Description)
+		_, err := db.Conn.Exec(`INSERT OR IGNORE INTO sections (name, description) VALUES (?, ?)`, s.Name, s.Description)
 		if err != nil {
 			log.Fatalf("failed to create section %q: %v", s.Name, err)
 		}
 	}
 	log.Println("Sections created.")
 
-	// Test user
-	_, err := db.Conn.Exec(`
-		INSERT OR IGNORE INTO users (username, email, password_hash, created_at)
-		VALUES ('testuser', 'test@example.com', 'hashedpassword', ?)
-	`, time.Now().Format(time.RFC3339Nano))
+	// Create admin user (username: admin, password: abc123)
+	adminUser, err := models.GetUserByUsername("admin")
 	if err != nil {
-		log.Fatalf("failed to create test user: %v", err)
+		log.Fatalf("failed checking admin user: %v", err)
+	}
+	if adminUser == nil {
+		if err := models.CreateUser("admin", "admin@example.com", "abc123", true); err != nil {
+			log.Fatalf("failed to create admin user: %v", err)
+		}
+		log.Println("✅ Created admin user: username=admin, password=abc123")
+	} else {
+		log.Println("🔒 Admin user already exists; skipping creation.")
 	}
 
-	var userID int
-	if err := db.Conn.QueryRow(`SELECT id FROM users WHERE username = 'testuser'`).Scan(&userID); err != nil {
+	// Test user (username: testuser)
+	testUser, err := models.GetUserByUsername("testuser")
+	if err != nil {
+		log.Fatalf("failed checking test user: %v", err)
+	}
+	if testUser == nil {
+		if err := models.CreateUser("testuser", "test@example.com", "testpass", false); err != nil {
+			log.Fatalf("failed to create test user: %v", err)
+		}
+		log.Println("✅ Created test user: username=testuser, password=testpass")
+	} else {
+		log.Println("🔒 Test user already exists; skipping creation.")
+	}
+
+	// Fetch userID for testuser
+	var userID int64
+	u, err := models.GetUserByUsername("testuser")
+	if err != nil || u == nil {
 		log.Fatalf("failed to fetch test user id: %v", err)
 	}
+	userID = u.ID
 
 	// Fetch sections
 	rows, err := db.Conn.Query(`SELECT id, name FROM sections`)
@@ -64,7 +86,9 @@ func main() {
 	var sectionList []sec
 	for rows.Next() {
 		var s sec
-		rows.Scan(&s.ID, &s.Name)
+		if err := rows.Scan(&s.ID, &s.Name); err != nil {
+			log.Fatalf("failed scanning section row: %v", err)
+		}
 		sectionList = append(sectionList, s)
 	}
 
@@ -79,7 +103,7 @@ func main() {
 		for i := 1; i <= 8; i++ {
 			title := fmt.Sprintf("[%s] Sample Thread #%d", s.Name, i)
 			content := fmt.Sprintf("Discussion topic #%d in the %s section.", i, s.Name)
-			threadID, err := models.CreateThread(title, content, int64(userID), s.ID)
+			threadID, err := models.CreateThread(title, content, userID, s.ID)
 			if err != nil {
 				log.Fatalf("failed to create thread in section %q: %v", s.Name, err)
 			}
@@ -87,7 +111,7 @@ func main() {
 			// Create root replies
 			for r := 1; r <= 3; r++ {
 				rootContent := fmt.Sprintf("Root reply #%d for thread %d", r, threadID)
-				if err := models.CreateReply(int(threadID), int64(userID), rootContent, nil); err != nil {
+				if err := models.CreateReply(int(threadID), userID, rootContent, nil); err != nil {
 					log.Fatalf("failed to create root reply for thread %d: %v", threadID, err)
 				}
 			}
@@ -102,7 +126,7 @@ func main() {
 				// Add 2 child replies per root
 				for c := 1; c <= 2; c++ {
 					childContent := fmt.Sprintf("Child reply #%d to reply %d", c, r.ID)
-					if err := models.CreateReply(int(threadID), int64(userID), childContent, &r.ID); err != nil {
+					if err := models.CreateReply(int(threadID), userID, childContent, &r.ID); err != nil {
 						log.Fatalf("failed to create child reply for reply %d: %v", r.ID, err)
 					}
 				}

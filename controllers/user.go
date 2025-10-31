@@ -41,7 +41,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = models.CreateUser(username, email, password)
+	err = models.CreateUser(username, email, password, false)
 	if err != nil {
 		Render(w, "register", map[string]any{
 			"Error": "Could not create user",

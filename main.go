@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"forum-experiment/api"
 	"forum-experiment/controllers"
 	"forum-experiment/db"
 )
@@ -35,6 +36,14 @@ func main() {
 	r.Get("/logout", controllers.Logout)
 	r.Post("/logout", controllers.Logout)
 	r.Get("/search", controllers.SearchHandler)
+
+	//api stuff
+	r.Route("/api", func(apiRouter chi.Router) {
+		apiRouter.Post("/login", api.Login)
+		apiRouter.Get("/threads", api.GetThreads)
+		apiRouter.Get("/threads/{id}", api.GetThreadByID)
+		apiRouter.Delete("/threads/{id}", api.DeleteThread)
+	})
 
 	log.Println("Server running at http://localhost:8080")
 	http.ListenAndServe(":8080", r)
