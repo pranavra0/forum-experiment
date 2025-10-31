@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"forum-experiment/config"
 	"forum-experiment/models"
 
 	"github.com/go-chi/chi/v5"
@@ -32,7 +33,8 @@ func SectionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const pageSize = 10
+	var pageSize = config.C.Pagination.ThreadsPerPage
+
 	threads, totalPages, err := models.GetPaginatedThreadsBySection(sectionID, page, pageSize)
 	if err != nil {
 		http.Error(w, "Error loading threads", http.StatusInternalServerError)

@@ -1,0 +1,36 @@
+app:
+  port: ":8080"           # HTTP listen address
+  env: "development"      # "development" or "production"
+
+db:
+  path: "forum.db"        # SQLite database file path
+  max_open_conns: 1       # Limit connections for SQLite
+  busy_timeout_ms: 5000   # SQLite busy timeout (ms)
+  foreign_keys: true      # Enforce foreign key constraints
+
+templates:
+  dir: "templates"        # Directory where HTML templates live
+  base: "base.html"       # Base layout file
+
+bootstrap:
+  # Admin accounts created automatically if password is set in .env
+  admins:
+    - username: "admin"
+      email: "admin@example.com"
+    # You can add more admins like:
+    # - username: "moderator"
+    #   email: "mod@example.com"
+
+pagination:
+  threads_per_page: 10    # Threads shown per section page
+  replies_per_page: 20    # Replies shown per thread page
+
+theme:
+  name: "default"         # Reserved for future themes
+  dark_mode: false
+
+features:
+  allow_registration: true
+  allow_anonymous: false
+  enable_api: true
+  allow_thread_deletion: true

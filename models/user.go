@@ -6,6 +6,8 @@ import (
 
 	"forum-experiment/db"
 
+	"log"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -66,4 +68,18 @@ func GetUserByUsername(username string) (*User, error) {
 func CheckPassword(user *User, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	return err == nil
+}
+
+func EnsureAdminExists(username, email, password string) error {
+	u, err := GetUserByUsername(username)
+	if err != nil {
+		return err
+	}
+	if u != nil {
+		log.Printf("Admin user %s already exists.", username)
+		return nil
+	}
+
+	log.Printf("Creating admin user: %s", username)
+	return CreateUser(username, email, password, true)
 }

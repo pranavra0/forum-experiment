@@ -1,21 +1,42 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 
 	"forum-experiment/api"
+	"forum-experiment/config"
 	"forum-experiment/controllers"
 	"forum-experiment/db"
+	"forum-experiment/models"
 )
 
 func main() {
-	if err := db.Init("forum.db"); err != nil {
+
+	config.LoadConfig()
+	config.LoadEnv()
+
+	dbPath := config.E.DatabasePath
+	if config.C.DB.Path != "" && config.E.DatabasePath == "forum.db" {
+		dbPath = config.C.DB.Path
+	}
+
+	if err := db.Init(dbPath); err != nil {
 		log.Fatalf("db init error: %v", err)
 	}
 	defer db.Close()
+
+	if err := models.EnsureAdminExists(
+		config.E.AdminUsername,
+		config.E.AdminEmail,
+		config.E.AdminPassword,
+	); err != nil {
+		log.Fatalf("failed to ensure admin user: %v", err)
+	}
+
 	controllers.InitTemplates()
 	r := chi.NewRouter()
 
@@ -45,6 +66,12 @@ func main() {
 		apiRouter.Delete("/threads/{id}", api.DeleteThread)
 	})
 
-	log.Println("Server running at http://localhost:8080")
-	http.ListenAndServe(":8080", r)
+	port := config.E.Port
+	if port == "" {
+		port = config.C.App.Port // fallback if YAML specifies one
+	}
+	addr := fmt.Sprintf(":%s", port)
+
+	log.Printf("Server running at %s", addr)
+	http.ListenAndServe(addr, r)
 }

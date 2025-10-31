@@ -6,6 +6,8 @@ import (
 
 	"forum-experiment/models"
 
+	"forum-experiment/config"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -82,9 +84,9 @@ func ShowThread(w http.ResponseWriter, r *http.Request) {
 	if page < 1 {
 		page = 1
 	}
-	const pageSize = 10
+	var pageSize = config.C.Pagination.RepliesPerPage
 
-	// Get hierarchical replies with pagination on root-level replies
+	// Get replies with pagination on root-level replies
 	replies, totalPages, err := models.GetPaginatedRepliesByThreadID(id, page, pageSize)
 	if err != nil {
 		http.Error(w, "could not load replies", http.StatusInternalServerError)
