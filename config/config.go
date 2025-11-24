@@ -37,13 +37,6 @@ type Config struct {
 		ThreadsPerPage int `yaml:"threads_per_page"`
 		RepliesPerPage int `yaml:"replies_per_page"`
 	} `yaml:"pagination"`
-
-	Features struct {
-		AllowRegistration   bool `yaml:"allow_registration"`
-		AllowAnonymous      bool `yaml:"allow_anonymous"`
-		EnableAPI           bool `yaml:"enable_api"`
-		AllowThreadDeletion bool `yaml:"allow_thread_deletion"`
-	} `yaml:"features"`
 }
 
 var C Config
